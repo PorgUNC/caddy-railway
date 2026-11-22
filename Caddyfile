@@ -1,9 +1,25 @@
-# This is your Caddy configuration. This default config
-# opens a port and serves a static site from the www folder.
-# Edit this file according to your needs.
+{
+    auto_https off
+}
 
-# Remember, Railway terminates TLS before it gets to Caddy.
-:8080
+:80 {
+    # Root path: redirect internally to the login UI
+    @root path /
+    rewrite @root /ui/v2/login/
 
-root /www
-file_server
+    # Login frontend
+    @login path /ui/v2/login*
+    reverse_proxy @login zitadel-login.railway.internal:3000
+
+    # API alias: strip /api prefix
+    @api path /api /api/*
+    handle @api {
+        uri strip_prefix /api
+        reverse_proxy h2c://zitadel-api.railway.internal:8080
+    }
+
+    # Canonical API routes, including gRPC and Connect-RPC
+    handle {
+        reverse_proxy h2c://zitadel-api.railway.internal:8080
+    }
+}
