@@ -1,25 +1,27 @@
 {
-    auto_https off
+	auto_https off
 }
 
 :80 {
-    # Root path: redirect internally to the login UI
-    @root path /
-    rewrite @root /ui/v2/login/
+	# Root path: rewrite internally to the login UI
+	@root path /
+	rewrite @root /ui/v2/login/
 
-    # Login frontend
-    @login path /ui/v2/login*
-    reverse_proxy @login zitadel-login.railway.internal:3000
+	# Login frontend
+	@login path /ui/v2/login*
+	handle @login {
+		reverse_proxy zitadel-login.railway.internal:3000
+	}
 
-    # API alias: strip /api prefix
-    @api path /api /api/*
-    handle @api {
-        uri strip_prefix /api
-        reverse_proxy h2c://zitadel-api.railway.internal:8080
-    }
+	# API alias: strip /api prefix
+	@api path /api /api/*
+	handle @api {
+		uri strip_prefix /api
+		reverse_proxy h2c://zitadel-api.railway.internal:8080
+	}
 
-    # Canonical API routes, including gRPC and Connect-RPC
-    handle {
-        reverse_proxy h2c://zitadel-api.railway.internal:8080
-    }
+	# Canonical API routes, including gRPC and Connect-RPC
+	handle {
+		reverse_proxy h2c://zitadel-api.railway.internal:8080
+	}
 }
