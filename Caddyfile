@@ -10,7 +10,7 @@
 	# Login frontend
 	@login path /ui/v2/login*
 	handle @login {
-		reverse_proxy zitadel-login.railway.internal:3000
+		reverse_proxy zitadel-login.railway.internal:8080
 	}
 
 	# API alias: strip /api prefix
